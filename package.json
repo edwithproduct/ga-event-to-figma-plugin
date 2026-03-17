@@ -1,0 +1,28 @@
+{
+  "name": "ga-event-figma-plugin",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "npm run build:ui && npm run build:plugin",
+    "build:ui": "vite build",
+    "build:plugin": "esbuild src/plugin/main.ts --bundle --outfile=dist/main.js --target=es6 --external:@figma/plugin-typings",
+    "watch": "concurrently \"vite build --watch\" \"esbuild src/plugin/main.ts --bundle --outfile=dist/main.js --target=es6 --watch\""
+  },
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.108.0",
+    "@tailwindcss/postcss": "^4.2.1",
+    "@vitejs/plugin-react": "^4.4.1",
+    "autoprefixer": "^10.4.21",
+    "concurrently": "^9.1.2",
+    "esbuild": "^0.25.1",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^4.2.1",
+    "typescript": "^5.8.2",
+    "vite": "^8.0.0",
+    "vite-plugin-singlefile": "^2.0.2"
+  }
+}

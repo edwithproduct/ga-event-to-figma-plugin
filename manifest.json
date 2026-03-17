@@ -1,0 +1,12 @@
+{
+  "name": "GA Event Map",
+  "id": "1615659943400637688",
+  "api": "1.0.0",
+  "main": "dist/main.js",
+  "ui": "dist/index.html",
+  "editorType": ["figma"],
+  "networkAccess": {
+    "allowedDomains": ["none"]
+  },
+  "documentAccess": "dynamic-page"
+}
