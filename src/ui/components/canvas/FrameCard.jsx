@@ -4,13 +4,16 @@ import HotspotPopover from './HotspotPopover.jsx';
 import HotspotEditModal from '../editor/HotspotEditModal.jsx';
 import ConfirmDialog from '../ui/ConfirmDialog.jsx';
 import { getDisplayWidth } from '../../utils/displayWidth.js';
+import { useAppContext } from '../../context/AppContext.jsx';
 
 export default function FrameCard({
   frame, editMode, zoom = 1,
   activeHotspotId, onHotspotActivate,
   onAddHotspot, onUpdateHotspot, onDeleteHotspot,
-  onMove, onRefresh,
+  onMove, onRefresh, onHide,
 }) {
+  const { state } = useAppContext();
+  const { activePlatform } = state;
   const bodyRef = useRef();
   const [editModal, setEditModal] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -61,6 +64,10 @@ export default function FrameCard({
     return { x: (activeHotspot.x / 100) * rect.width / zoom, y: (activeHotspot.y / 100) * rect.height / zoom };
   })();
 
+  const connectorLine = popoverPos
+    ? { x1: popoverPos.x, y1: popoverPos.y, x2: popoverPos.x + 40, y2: popoverPos.y }
+    : null;
+
   return (
     <div style={{ left: frame.x, top: frame.y, position: 'absolute' }}>
       {/* Header / drag handle */}
@@ -71,13 +78,22 @@ export default function FrameCard({
         {editMode && <span className="text-[#636E82] text-sm select-none">⠿</span>}
         <span className="flex-1 text-xs text-white/80 truncate" title={frame.name}>{frame.name}</span>
         {editMode && (
-          <button
-            onClick={e => { e.stopPropagation(); onRefresh(); }}
-            className="text-[10px] text-white/50 hover:text-white px-1.5 py-0.5 rounded hover:bg-white/10"
-            title="從 Figma 重新匯出"
-          >
-            ↻ 同步
-          </button>
+          <>
+            <button
+              onClick={e => { e.stopPropagation(); onRefresh(); }}
+              className="text-[10px] text-white/50 hover:text-white px-1.5 py-0.5 rounded hover:bg-white/10"
+              title="從 Figma 重新匯出"
+            >
+              ↻ 同步
+            </button>
+            <button
+              onClick={e => { e.stopPropagation(); onHide(); }}
+              className="text-[10px] text-white/50 hover:text-white px-1.5 py-0.5 rounded hover:bg-white/10"
+              title="隱藏此 Frame"
+            >
+              ○ 隱藏
+            </button>
+          </>
         )}
       </div>
 
@@ -107,6 +123,7 @@ export default function FrameCard({
               hotspot={h}
               index={idx}
               editMode={editMode}
+              activePlatform={activePlatform}
               onSelect={() => handleMarkerSelect(hotspot)}
               onDragEnd={(x, y, persist) => handleDragUpdate(hotspot, x, y, persist)}
               onDoubleClick={() => setEditModal({ mode: 'edit', hotspot })}
@@ -114,6 +131,22 @@ export default function FrameCard({
             />
           );
         })}
+
+        {/* Connector line */}
+        {connectorLine && (
+          <div style={{
+            position: 'absolute',
+            left: connectorLine.x1,
+            top: connectorLine.y1,
+            width: 40,
+            height: 0,
+            borderTop: `${2 / zoom}px dashed #38BDF8`,
+            transform: 'translateY(-50%)',
+            pointerEvents: 'none',
+            zIndex: 15,
+            filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.5))',
+          }} />
+        )}
 
         {/* Popover */}
         {activeHotspot && popoverPos && (

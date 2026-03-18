@@ -16,6 +16,10 @@ export function useFrames() {
     activePageRef.current = activePage;
   }, [activePage]);
 
+  const [hiddenFrames, setHiddenFrames] = useState([]);
+  const streamIndexRef = useRef(0);
+  const streamPositionsRef = useRef({});
+
   useEffect(() => {
     const cleanup = onPluginMessage((msg) => {
       switch (msg.type) {
@@ -29,16 +33,60 @@ export function useFrames() {
           }
           break;
         }
-        case 'FRAMES_DATA': {
-          const posMap = msg.positions || {};
-          setFrames(msg.frames.map((f, idx) => ({
+        case 'FRAMES_START': {
+          streamIndexRef.current = 0;
+          streamPositionsRef.current = msg.positions || {};
+          setFrames([]);
+          setHiddenFrames(msg.hiddenFrames || []);
+          break;
+        }
+        case 'FRAME_STREAM': {
+          const idx = streamIndexRef.current++;
+          const posMap = streamPositionsRef.current;
+          const f = msg.frame;
+          setFrames(prev => [...prev, {
             ...f,
             imageUrl: bytesToDataUrl(f.imageBytes),
             hotspots: f.hotspots || [],
             x: posMap[f.id]?.x ?? (40 + (idx % 3) * COL_SPACING),
             y: posMap[f.id]?.y ?? (40 + Math.floor(idx / 3) * ROW_SPACING),
-          })));
+          }]);
+          break;
+        }
+        case 'FRAMES_DONE': {
           setLoading(false);
+          break;
+        }
+        case 'EXPORT_DATA': {
+          const json = JSON.stringify({ version: 1, frames: msg.data }, null, 2);
+          const blob = new Blob([json], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `ga-events-${msg.pageName}.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+          break;
+        }
+        case 'IMPORT_DONE': {
+          alert(`成功匯入 ${msg.imported} 個 Frame 的標注資料，正在重新載入...`);
+          const pageId = activePageRef.current?.id;
+          if (pageId) sendToPlugin({ type: 'GET_FRAMES_FOR_PAGE', pageId });
+          break;
+        }
+        case 'FRAME_SHOWN': {
+          console.log('[FRAME_SHOWN] received, frameId:', msg.frame?.id, 'name:', msg.frame?.name);
+          const posMap = streamPositionsRef.current;
+          const f = msg.frame;
+          const idx = streamIndexRef.current++;
+          setHiddenFrames(prev => prev.filter(h => h.id !== f.id));
+          setFrames(prev => [...prev, {
+            ...f,
+            imageUrl: bytesToDataUrl(f.imageBytes),
+            hotspots: f.hotspots || [],
+            x: posMap[f.id]?.x ?? (40 + (idx % 3) * COL_SPACING),
+            y: posMap[f.id]?.y ?? (40 + Math.floor(idx / 3) * ROW_SPACING),
+          }]);
           break;
         }
         case 'FRAME_REFRESHED': {
@@ -106,6 +154,41 @@ export function useFrames() {
 
   const refreshFrame = (frameId) => sendToPlugin({ type: 'REFRESH_FRAME', frameId });
 
+  const exportHotspots = useCallback(() => {
+    const pageId = activePageRef.current?.id;
+    sendToPlugin({ type: 'EXPORT_HOTSPOTS', pageId });
+  }, []);
+
+  const importHotspots = useCallback((file) => {
+    const pageId = activePageRef.current?.id;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        sendToPlugin({ type: 'IMPORT_HOTSPOTS', data: parsed.frames, pageId });
+      } catch {
+        alert('JSON 格式錯誤，請確認匯入的檔案是否正確。');
+      }
+    };
+    reader.readAsText(file);
+  }, []);
+
+  const hideFrame = useCallback((frameId) => {
+    const pageId = activePageRef.current?.id;
+    setFrames(prev => {
+      const frame = prev.find(f => f.id === frameId);
+      if (frame) setHiddenFrames(h => [...h, { id: frame.id, name: frame.name }]);
+      return prev.filter(f => f.id !== frameId);
+    });
+    sendToPlugin({ type: 'HIDE_FRAME', frameId, pageId });
+  }, []);
+
+  const showFrame = useCallback((frameId) => {
+    const pageId = activePageRef.current?.id;
+    console.log('[showFrame] sending SHOW_FRAME, frameId:', frameId, 'pageId:', pageId);
+    sendToPlugin({ type: 'SHOW_FRAME', frameId, pageId });
+  }, []);
+
   const switchPage = useCallback((pageId) => {
     setPages(prevPages => {
       const page = prevPages.find(p => p.id === pageId);
@@ -119,5 +202,5 @@ export function useFrames() {
     });
   }, []);
 
-  return { frames, loading, pages, activePage, switchPage, moveFrame, addHotspot, updateHotspot, deleteHotspot, refreshFrames, refreshFrame };
+  return { frames, hiddenFrames, loading, pages, activePage, switchPage, moveFrame, addHotspot, updateHotspot, deleteHotspot, refreshFrames, refreshFrame, hideFrame, showFrame, exportHotspots, importHotspots };
 }

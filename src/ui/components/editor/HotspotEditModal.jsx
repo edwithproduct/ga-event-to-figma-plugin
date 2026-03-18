@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Modal from '../ui/Modal.jsx';
 import { STATUS_OPTIONS } from '../ui/StatusBadge.jsx';
 
-const EMPTY = { traceLabel: '', traceCategory: '', traceInfo: '', webStatus: 'pending', iosStatus: 'pending', androidStatus: 'pending', notes: '' };
+const EMPTY = { eventName: '', traceLabel: '', traceCategory: '', traceInfo: '', webStatus: 'pending', iosStatus: 'pending', androidStatus: 'pending', notes: '' };
 
 const PLATFORM_STATUS_FIELDS = [
   { key: 'webStatus',     label: 'Web 狀態' },
@@ -15,7 +15,7 @@ export default function HotspotEditModal({ isOpen, onClose, onSave, initialData,
 
   useEffect(() => {
     if (isOpen) setForm(initialData
-      ? { traceLabel: initialData.traceLabel || '', traceCategory: initialData.traceCategory || '', traceInfo: initialData.traceInfo || '', webStatus: initialData.webStatus || 'pending', iosStatus: initialData.iosStatus || 'pending', androidStatus: initialData.androidStatus || 'pending', notes: initialData.notes || '' }
+      ? { eventName: initialData.eventName || '', traceLabel: initialData.traceLabel || '', traceCategory: initialData.traceCategory || '', traceInfo: initialData.traceInfo || '', webStatus: initialData.webStatus || 'pending', iosStatus: initialData.iosStatus || 'pending', androidStatus: initialData.androidStatus || 'pending', notes: initialData.notes || '' }
       : { ...EMPTY }
     );
   }, [isOpen, initialData]);
@@ -26,6 +26,7 @@ export default function HotspotEditModal({ isOpen, onClose, onSave, initialData,
     <Modal isOpen={isOpen} onClose={onClose} title={mode === 'add' ? '新增熱點' : '編輯熱點'}>
       <form onSubmit={e => { e.preventDefault(); onSave(form); onClose(); }} className="space-y-4">
         {[
+          { key: 'eventName',     label: '事件名稱',       ph: 'e.g. 查看點數歷程按鈕' },
           { key: 'traceLabel',    label: 'trace_label',    ph: 'e.g. point_history_view' },
           { key: 'traceCategory', label: 'trace_category', ph: 'e.g. points_center' },
           { key: 'traceInfo',     label: 'trace_info',     ph: 'e.g. 查看點數歷程' },

@@ -5,7 +5,7 @@ import AppSidebar from './components/layout/AppSidebar.jsx';
 import CanvasBoard from './components/canvas/CanvasBoard.jsx';
 
 function AppInner() {
-  const { frames, loading, pages, activePage, switchPage, moveFrame, addHotspot, updateHotspot, deleteHotspot, refreshFrames, refreshFrame } = useFrames();
+  const { frames, hiddenFrames, loading, pages, activePage, switchPage, moveFrame, addHotspot, updateHotspot, deleteHotspot, refreshFrames, refreshFrame, hideFrame, showFrame } = useFrames();
 
   return (
     <div className="h-screen flex flex-col bg-[#E8ECF2] overflow-hidden">
@@ -18,8 +18,9 @@ function AppInner() {
           onDeleteHotspot={deleteHotspot}
           onMoveFrame={moveFrame}
           onRefreshFrame={refreshFrame}
+          onHideFrame={hideFrame}
         />
-        <AppSidebar frames={frames} />
+        <AppSidebar frames={frames} hiddenFrames={hiddenFrames} onShowFrame={showFrame} />
       </div>
     </div>
   );

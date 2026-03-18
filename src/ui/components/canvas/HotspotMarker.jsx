@@ -1,9 +1,12 @@
 import { useRef } from 'react';
 import { STATUS_DOT_COLORS } from '../ui/StatusBadge.jsx';
 
-export default function HotspotMarker({ hotspot, index, editMode, onSelect, onDragEnd, onDoubleClick, onContextMenu }) {
+const PLATFORM_STATUS_KEY = { web: 'webStatus', ios: 'iosStatus', android: 'androidStatus' };
+
+export default function HotspotMarker({ hotspot, index, editMode, activePlatform = 'web', onSelect, onDragEnd, onDoubleClick, onContextMenu }) {
   const dragRef = useRef(null);
-  const color = STATUS_DOT_COLORS[hotspot.webStatus] || '#B4B8C1';
+  const statusKey = PLATFORM_STATUS_KEY[activePlatform] || 'webStatus';
+  const color = STATUS_DOT_COLORS[hotspot[statusKey]] || '#B4B8C1';
 
   function handleMouseDown(e) {
     if (!editMode) return;

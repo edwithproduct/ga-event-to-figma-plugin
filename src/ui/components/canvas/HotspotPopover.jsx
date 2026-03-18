@@ -66,13 +66,16 @@ export default function HotspotPopover({ hotspot, index, position, containerRef,
     setTimeout(() => setCopied(null), 1500);
   }
 
-  const style = computePos(position, containerRef, zoom);
+  const style = computePos(position, zoom);
 
   return (
-    <div ref={ref} style={{ ...style, transform: `scale(${1 / zoom})`, transformOrigin: '0 0' }} className="absolute z-20 w-[272px] bg-white rounded-xl shadow-[0_4px_20px_rgba(0,17,42,0.12)] border border-[#EBEEF3]" onMouseDown={e => e.stopPropagation()}>
-      <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-[#EBEEF3]">
-        <span className="w-5 h-5 rounded-full bg-[#00112A] flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">{index + 1}</span>
-        <button onClick={onClose} className="text-[#B4B8C1] hover:text-[#636E82] text-xl leading-none ml-2">×</button>
+    <div ref={ref} style={{ ...style, transform: `scale(${1 / zoom})`, transformOrigin: '0 0' }} className="absolute z-20 w-[272px] bg-white rounded-xl shadow-[0_4px_20px_rgba(0,17,42,0.12)] border-2 border-[#38BDF8]" onMouseDown={e => e.stopPropagation()}>
+      <div className="flex items-start justify-between px-4 pt-4 pb-3 border-b border-[#EBEEF3] gap-2">
+        <div className="flex items-start gap-2 min-w-0">
+          <span className="w-5 h-5 rounded-full bg-[#00112A] flex items-center justify-center text-white text-xs font-semibold flex-shrink-0 mt-0.5">{index + 1}</span>
+          {hotspot.eventName && <span className="text-xs font-medium text-[#00112A] leading-relaxed">{hotspot.eventName}</span>}
+        </div>
+        <button onClick={onClose} className="text-[#B4B8C1] hover:text-[#636E82] text-xl leading-none flex-shrink-0">×</button>
       </div>
       <div className="px-4 py-3 space-y-3">
         {FIELDS.map(({ key, label, mono }) => {
@@ -114,17 +117,6 @@ export default function HotspotPopover({ hotspot, index, position, containerRef,
   );
 }
 
-function computePos(pos, containerRef, zoom = 1) {
-  if (!containerRef?.current) return { left: pos.x + 14, top: pos.y - 10 };
-  const r = containerRef.current.getBoundingClientRect();
-  // All calculations in CSS pixel space (divide viewport px by zoom)
-  const containerW = r.width / zoom;
-  const containerH = r.height / zoom;
-  const W = 272, H = 360;
-  const popW = W / zoom;  // CSS footprint after counter-scale
-  const popH = H / zoom;
-  let left = pos.x + 14, top = pos.y - 10;
-  if (left + popW > containerW - 8) left = pos.x - popW - 14;
-  if (top + popH > containerH - 8) top = pos.y - popH + 10;
-  return { left: Math.max(4, left), top: Math.max(4, top) };
+function computePos(pos, zoom = 1) {
+  return { left: pos.x + 40, top: pos.y - (190 / zoom) };
 }

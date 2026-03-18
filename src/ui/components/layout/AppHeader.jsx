@@ -1,8 +1,21 @@
+import { useState } from 'react';
 import { useAppContext } from '../../context/AppContext.jsx';
 import { sendToPlugin } from '../../utils/figma.js';
 
+const SIZES = [
+  { label: 'S', width: 900, height: 600 },
+  { label: 'M', width: 1200, height: 750 },
+  { label: 'L', width: 1600, height: 900 },
+];
+
 export default function AppHeader({ onRefresh, loading, pages, activePage, switchPage }) {
   const { state, dispatch } = useAppContext();
+  const [activeSize, setActiveSize] = useState('M');
+
+  function handleResize(size) {
+    setActiveSize(size.label);
+    sendToPlugin({ type: 'RESIZE', width: size.width, height: size.height });
+  }
   return (
     <header className="flex flex-col bg-white border-b border-[#EBEEF3] flex-shrink-0">
       <div className="flex items-center justify-between px-4 py-2.5 h-12">
@@ -25,6 +38,17 @@ export default function AppHeader({ onRefresh, loading, pages, activePage, switc
                 }`}
               >
                 {m}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-0.5 bg-[#F3F7FA] rounded-lg p-1">
+            {SIZES.map(s => (
+              <button
+                key={s.label}
+                onClick={() => handleResize(s)}
+                className={`w-6 h-6 rounded text-xs font-medium transition-colors ${activeSize === s.label ? 'bg-white text-[#00112A] shadow-sm' : 'text-[#636E82] hover:text-[#00112A]'}`}
+              >
+                {s.label}
               </button>
             ))}
           </div>

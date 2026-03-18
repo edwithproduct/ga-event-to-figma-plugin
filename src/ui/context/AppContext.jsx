@@ -1,13 +1,14 @@
 import { createContext, useContext, useReducer } from 'react';
 
 const AppContext = createContext(null);
-const init = { editMode: false, selectedHotspotId: null, filterStatus: 'all' };
+const init = { editMode: false, selectedHotspotId: null, filterStatus: 'all', activePlatform: 'web' };
 
 function reducer(state, action) {
   switch (action.type) {
-    case 'SET_EDIT_MODE':       return { ...state, editMode: action.payload, selectedHotspotId: null };
+    case 'SET_EDIT_MODE':        return { ...state, editMode: action.payload, selectedHotspotId: null };
     case 'SET_SELECTED_HOTSPOT': return { ...state, selectedHotspotId: action.payload };
-    case 'SET_FILTER':          return { ...state, filterStatus: action.payload };
+    case 'SET_FILTER':           return { ...state, filterStatus: action.payload };
+    case 'SET_PLATFORM':         return { ...state, activePlatform: action.payload };
     default: return state;
   }
 }
